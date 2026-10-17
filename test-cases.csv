@@ -1,0 +1,80 @@
+Test Case ID,Title,Condition Type,Module,Precondition,Steps,Test Data,Expected Result,Spec Clause,Actual Result,Notes / Matching Bugs,Status
+TC-01,"Login succeeds with valid credentials and lands on the product catalogue",Positive,"Authentication (login.html)","Signed out; on login.html; registered account qa@shoplite.test / Passw0rd!23.","1. Enter qa@shoplite.test into Email
+2. Enter Passw0rd!23 into Password
+3. Click Login
+4. Observe the resulting page and the header","qa@shoplite.test / Passw0rd!23","User is signed in; lands on products.html with a session established; header shows the signed-in user's name and a cart badge.","§2.1, §2.10, §3.4","PASS for the all-lowercase email.
+FAIL for any case variant — QA@ShopLite.test was rejected, matching BUG-012.","The exact-case happy path works; §2.2 case-insensitivity is separately tracked.",PARTIAL PASS
+TC-02,"Failed sign-in shows the same neutral message for unregistered email and wrong password",Negative,"Authentication (login.html)","Signed out; on login.html.","1. Enter nobody@example.com and whatever123; click Login. Read the error.
+2. Clear; enter qa@shoplite.test and WrongPass1!; click Login. Read the error.
+3. Compare the two messages character-for-character.","Pair 1 = nobody@example.com / whatever123
+Pair 2 = qa@shoplite.test / WrongPass1!","Both failures display the exact same message: ""Email or password is incorrect.""
+Identical wording, length, and styling in both cases.","§2.5, §10.3","FAIL — Different messages were shown for each case; the account-existence state is revealed.",Matches BUG-015.,FAIL
+TC-03,"Search returns matching products for a lowercase query and updates the count",Positive,"Product Catalogue (products.html)","Signed in; on products.html; no filters applied.","1. Type pulse into the Search field.
+2. Read the grid and the result count.
+3. Type PULSE and read the grid and the result count.
+4. Type  pulse  (with spaces) and read the grid and the result count.","Queries:
+• pulse
+• PULSE
+•  pulse  (with leading/trailing spaces)","All three return Pulse X5 Phone and Pulse Lite Phone; count reads ""Showing 2 of 8 products""; no leading/trailing whitespace issues.","§4.2, §4.5","FAIL — The lowercase and whitespace variants did not match; the count stayed at ""Showing 8 of 8 products"" for all three.
+Matches BUG-019 and BUG-020.","Positive intent (valid query should match) fails for the same reason as the negative test (case sensitivity).",FAIL
+TC-04,"Out-of-stock product's button is disabled and cannot add to the cart",Negative,"Product Catalogue (products.html)","Signed in; cart empty; on products.html.","1. Locate Type-C Hub 7-in-1 (button reads ""Out of stock"").
+2. Click the Out of stock button once.
+3. Read the cart badge and open cart.html.","Type-C Hub 7-in-1 (stock = 0)","Button is disabled and non-interactive; no request fired; badge unchanged; no cart line created.","§4.9, §4.10","FAIL — Clicking the out-of-stock button added units to the cart; badge increased and a cart line appeared.",Matches BUG-023.,FAIL
+TC-05,"Add one unit of an in-stock product and verify the cart line, badge, and line total",Positive,"Cart (cart.html)","Signed in; cart empty; on products.html.","1. Click Add to cart once on Echo Buds Pro (৳5,499).
+2. Read the header cart badge.
+3. Open cart.html and inspect the line for Echo Buds Pro — quantity, unit price, line total.","Echo Buds Pro","Badge = 1
+One cart line
+Quantity = 1
+Unit price read-only at ৳5,499.00
+Line total = ৳5,499.00","§4.8, §3.4, §5.1, §5.7","FAIL — One click added 2 units; the unit price was editable.","Matches BUG-022 and BUG-026.",FAIL
+TC-06,"Quantity field rejects 0, negative, decimal, blank, and non-numeric input",Negative,"Cart (cart.html)","Signed in; cart contains one Echo Buds Pro line at quantity 1; on cart.html.","1. Enter 0 and commit; read quantity and any error.
+2. Enter -1 and commit.
+3. Enter 1.5 and commit.
+4. Clear the field (blank) and commit.
+5. Enter abc and commit.","Inputs:
+• 0
+• -1
+• 1.5
+• blank
+• abc","Inline error for every invalid value; previous valid quantity (1) restored each time; line total and subtotal unchanged.",§5.2,"FAIL — 0, -1, and 1.5 were accepted; blank and abc did not restore the previous valid quantity; totals recalculated with invalid values.",Matches BUG-027.,FAIL
+TC-07,"Clear cart asks for confirmation and clears coupon and discount on confirm",Negative,"Cart / Pricing","Signed in; cart has at least two items; coupon SAVE10 applied and discount line visible; on cart.html.","1. Note the discount value and grand total.
+2. Click Clear cart.
+3. Observe whether a confirmation prompt appears.
+4. If a cancel option exists, cancel and verify cart unchanged.
+5. Click Clear cart again and confirm.
+6. Inspect cart lines, coupon field, discount line, subtotal, grand total.","Coupon SAVE10","Confirmation required.
+On confirm:
+• Cart emptied
+• Coupon and discount cleared
+• Subtotal ৳0.00","§5.5, §5.6, §6.3","FAIL — No confirmation shown; cart cleared on first click; coupon and discount remained populated.",Matches BUG-028.,FAIL
+TC-08,"SAVE10 discount is capped at ৳2,000 and applied correctly on a qualifying cart","Positive (with boundary at the cap)","Pricing / Coupons","Signed in; cart subtotal ≥ ৳20,000 (so 10% exceeds the cap); no coupon applied; on cart.html.","1. Enter SAVE10 and click Apply.
+2. Read the Discount line.
+3. Read the Grand total and compare to (subtotal − discount) + VAT + delivery.","Coupon SAVE10
+Cap ৳2,000","Discount line = ৳2,000.00 exactly
+Grand total = (subtotal − 2,000) + 7.5% VAT + delivery, rounded to 2 decimals.","§6.6, §6.9, §6.3, §6.4","FAIL — Discount far exceeded ৳2,000; grand total did not match the formula; VAT did not recalculate.","Matches BUG-037, BUG-038, BUG-039.",FAIL
+TC-09,"Payment method is single-choice: choosing cash on delivery deselects card and hides card fields",Negative,"Checkout (checkout.html)","Signed in; cart has at least one item; on checkout.html.","1. Select Credit / debit card; confirm card fields are shown.
+2. Select Cash on delivery.
+3. Observe which of the two is selected and whether the card fields are hidden.
+4. Try to click the selected option again to deselect it.",None,"Exactly one option selected.
+Card fields hidden on cash selection and no longer required.
+The selected option cannot be deselected to an empty state.",§7.4,"FAIL — Both options remained selected; the selected option could not be deselected.",Matches BUG-001.,FAIL
+TC-10,"A fully valid checkout places exactly one order and matches the cart grand total","Positive (end-to-end)","Checkout → Confirmation","Signed in; cart has one or more items and a known grand total; on cart.html; no coupon or a single valid coupon applied.","1. Note the cart grand total.
+2. Proceed to checkout.
+3. Fill full name, mobile number, street address, city.
+4. Select Credit / debit card; enter a valid card number, valid future expiry, and a 3-digit CVV.
+5. Tick the terms checkbox.
+6. Click Place order once.
+7. Read the order reference and amount charged.
+8. Reload the confirmation page.","Luhn-valid 13–19 digit card
+Future MM/YY expiry
+3-digit CVV
+Terms ticked","Exactly one order created.
+Amount charged = cart grand total.
+Cart emptied.
+Confirmation persisted and not forgeable by URL editing.","§7.2–§7.8, §7.9, §7.10, §8.1, §8.2, §8.5","FAIL — Multiple upstream defects blocked a clean end-to-end run:
+• Mandatory fields accepted blank (BUG-005)
+• Mobile number accepted invalid formats (BUG-008)
+• Card length/Luhn not enforced (BUG-007, BUG-009)
+• CVV accepted a negative value (BUG-003)
+• Terms did not gate submission (BUG-002)
+• Amount payable did not match cart grand total (BUG-039)","End-to-end chain; each upstream failure tracked under its own ticket.",FAIL

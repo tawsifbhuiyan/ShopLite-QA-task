@@ -1,0 +1,12 @@
+{
+  "name": "shoplite-automation",
+  "version": "1.0.0",
+  "description": "Playwright checks for ShopLite",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
