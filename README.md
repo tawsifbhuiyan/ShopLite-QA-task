@@ -1,0 +1,1 @@
+# ShopLite-QA-task
